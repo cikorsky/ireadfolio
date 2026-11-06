@@ -1,0 +1,3 @@
+import {describe,it,expect} from 'vitest';import {ShortcutMatcher} from '../src/shortcuts';
+const key=(k:string,ctrl=false)=>({key:k,ctrlKey:ctrl,metaKey:false,altKey:false,shiftKey:false});
+describe('快捷键配置实际匹配',()=>{it('支持序列和超时',()=>{const m=new ShortcutMatcher();expect(m.match(key('a'),{toggle:'a a'},1000)).toBeUndefined();expect(m.match(key('a'),{toggle:'a a'},1200)).toBe('toggle');expect(m.match(key('a'),{toggle:'a a'},3000)).toBeUndefined();expect(m.match(key('a'),{toggle:'a a'},4000)).toBeUndefined();});it('支持自定义组合键与Esc别名',()=>{const m=new ShortcutMatcher();expect(m.match(key('f',true),{find:'Ctrl+f'})).toBe('find');expect(m.match(key('Escape'),{escape:'esc'})).toBe('escape');expect(m.match(key('b'),{toggle:'b'})).toBe('toggle');});});

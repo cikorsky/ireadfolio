@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check-and-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CI: true
+      E2E_OUT: evidence/ci/chrome
+      TOOLBAR_E2E_OUT: evidence/ci/toolbar
+      LAYOUT_E2E_OUT: evidence/ci/layout
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Typecheck, lint, test, and build both browsers
+        run: npm run check
+      - name: Audit selected source and browser archives
+        run: npm run release:audit
+      - name: Install isolated test browser and Chinese fonts
+        run: |
+          npx playwright install --with-deps chromium
+          sudo apt-get install -y fonts-noto-cjk
+      - name: Chrome integration journeys
+        run: npm run e2e
+      - name: Toolbar integration journeys
+        run: node scripts/toolbar-e2e.mjs
+      - name: Reader layout journeys
+        run: node scripts/layout-v07-e2e.mjs
+      - name: Upload verification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-verification-${{ github.run_attempt }}
+          path: evidence/ci/
+          if-no-files-found: ignore
+          retention-days: 7

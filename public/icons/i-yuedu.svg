@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <title>iReadFolio</title>
+  <rect x="4" y="4" width="120" height="120" rx="29" fill="#087F8C"/>
+  <circle cx="64" cy="27" r="7" fill="#FFBE79"/>
+  <path d="M26 40c14-4 26-1 35 6v49c-10-7-22-10-35-6z" fill="#FFFDF7"/>
+  <path d="M67 46c9-7 21-10 35-6v49c-13-4-25-1-35 6z" fill="#FFFDF7"/>
+  <path d="M35 53c6 0 12 2 17 5m-17 9c6 0 12 2 17 5m24-14c5-3 11-5 17-5m-17 19c5-3 11-5 17-5" fill="none" stroke="#087F8C" stroke-opacity=".45" stroke-width="3.5" stroke-linecap="round"/>
+</svg>

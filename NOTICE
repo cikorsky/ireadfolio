@@ -1,0 +1,13 @@
+iReadFolio
+Copyright 2026 iReadFolio contributors
+
+Project-authored source and original project assets are licensed under Apache-2.0.
+Third-party components and bundled fonts remain under their respective licenses.
+See public/THIRD_PARTY_LICENSES.txt and docs/PROVENANCE.md.
+
+License selections for dual-licensed dependencies:
+- DOMPurify: Apache-2.0 option.
+- JSZip: MIT option.
+
+Legacy storage keys, Firefox extension ID, and WebDAV directory names are retained
+for data compatibility. They do not imply affiliation with another product.

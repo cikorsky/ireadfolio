@@ -1,0 +1,88 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*.*.*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing version tag, for example v0.8.0
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.event.inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    env:
+      RELEASE_TAG: ${{ github.event.inputs.tag || github.ref_name }}
+      E2E_OUT: evidence/release/chrome
+      TOOLBAR_E2E_OUT: evidence/release/toolbar
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Validate version tag
+        run: |
+          node --input-type=module <<'JS'
+          import fs from 'node:fs';
+          const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+          if (!/^v\d+\.\d+\.\d+$/.test(process.env.RELEASE_TAG) || process.env.RELEASE_TAG !== `v${pkg.version}`) {
+            throw new Error('Release tag must match package.json version');
+          }
+          JS
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Validate and build release
+        run: npm run check
+      - name: Audit selected source and browser archives
+        run: npm run release:audit
+      - name: Install isolated test browser and Chinese fonts
+        run: |
+          npx playwright install --with-deps chromium
+          sudo apt-get install -y fonts-noto-cjk
+      - name: Verify release behavior
+        run: |
+          npm run e2e
+          node scripts/toolbar-e2e.mjs
+      - name: Generate archive checksums
+        run: |
+          test -f "releases/ireadfolio-chrome-${RELEASE_TAG}.zip"
+          test -f "releases/ireadfolio-firefox-${RELEASE_TAG}.zip"
+          test -f "releases/ireadfolio-firefox-${RELEASE_TAG}.xpi"
+          cd releases
+          sha256sum ireadfolio-*.zip ireadfolio-*.xpi > SHA256SUMS.txt
+      - name: Publish versioned archives
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh release create "$RELEASE_TAG" \
+            "releases/ireadfolio-chrome-${RELEASE_TAG}.zip" \
+            "releases/ireadfolio-firefox-${RELEASE_TAG}.zip" \
+            "releases/ireadfolio-firefox-${RELEASE_TAG}.xpi" \
+            releases/SHA256SUMS.txt \
+            --verify-tag --title "iReadFolio ${RELEASE_TAG}" --generate-notes \
+            --notes 'Firefox XPI is unsigned. Chrome/Edge ZIP is loaded unpacked; these archives do not imply browser-store approval or signing.'
+      - name: Upload verification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-verification-${{ github.run_attempt }}
+          path: evidence/release/
+          if-no-files-found: ignore
+          retention-days: 7

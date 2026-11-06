@@ -1,0 +1,69 @@
+{
+  "name": "ireadfolio",
+  "version": "0.8.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "typecheck": "tsc --noEmit",
+    "build": "node scripts/build.mjs",
+    "test": "vitest run",
+    "lint": "eslint src tests --max-warnings 0",
+    "check": "npm run typecheck && npm run lint && npm test && npm run build",
+    "e2e": "node scripts/e2e.mjs",
+    "e2e:toolbar": "node scripts/toolbar-e2e.mjs",
+    "e2e:layout": "node scripts/layout-v07-e2e.mjs",
+    "release:audit": "node scripts/release-audit.mjs"
+  },
+  "dependencies": {
+    "@ant-design/cssinjs": "^2.1.2",
+    "@ant-design/icons": "^6.0.0",
+    "@mozilla/readability": "^0.6.0",
+    "antd": "^6.0.0",
+    "docx": "^9.5.0",
+    "dompurify": "^3.3.0",
+    "highlight.js": "^11.12.0",
+    "html-to-image": "^1.11.13",
+    "jszip": "^3.10.1",
+    "katex": "^0.19.1",
+    "marked": "^17.0.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "turndown": "^7.2.2"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.0",
+    "@types/chrome": "^0.1.30",
+    "@types/jsdom": "^30.0.0",
+    "@types/katex": "^0.16.8",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@types/turndown": "^5.0.5",
+    "@vitejs/plugin-react": "^5.1.0",
+    "esbuild": "0.28.2",
+    "eslint": "^9.39.0",
+    "globals": "^16.5.0",
+    "jsdom": "^27.0.0",
+    "playwright": "^1.58.0",
+    "typescript": "^5.9.0",
+    "typescript-eslint": "^8.46.0",
+    "vite": "^7.2.0",
+    "vitest": "^4.0.0"
+  },
+  "displayName": "iReadFolio · i悦读",
+  "description": "A browser extension for focused reading, typography, annotations, and document export.",
+  "license": "Apache-2.0",
+  "author": "iReadFolio contributors",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cikorsky/ireadfolio.git"
+  },
+  "homepage": "https://github.com/cikorsky/ireadfolio#readme",
+  "bugs": {
+    "url": "https://github.com/cikorsky/ireadfolio/issues"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  }
+}

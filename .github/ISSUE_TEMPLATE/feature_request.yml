@@ -1,0 +1,28 @@
+name: Feature request / 功能建议
+description: Describe a concrete reading, typography, or export need.
+title: "[Feature] "
+labels: []
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: User problem / 使用问题
+      description: What are you trying to do, and what is difficult today?
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired behavior / 期望行为
+      description: Describe the resulting behavior and how you would know it works.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered / 已考虑的替代方式
+  - type: textarea
+    id: compatibility
+    attributes:
+      label: Browser, data, and privacy considerations / 浏览器、数据与隐私影响
+      description: Mention any new permission, network service, data migration, or affected export format you expect.
