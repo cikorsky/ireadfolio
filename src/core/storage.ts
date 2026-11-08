@@ -29,7 +29,9 @@ function validateDocumentBlock<K extends typeof documentBlockKeys[number]>(kind:
  if(!isObject(input)||Object.prototype.toString.call(input)!=='[object Object]')throw new Error(`${kind} 样式格式无效。`);
  const out=clone(defaults.appearance[kind]),fields=out as unknown as Record<string,unknown>;
  const ranges:Record<string,[number,number]>={fontSize:[8,100],headerFontSize:[8,100],fontWeight:[100,900],headerFontWeight:[100,900],lineHeight:[10,240],spaceBefore:[0,240],spaceAfter:[0,240],letterSpacing:[-10,10],borderWidth:[0,10],cellPaddingX:[0,80],cellPaddingY:[0,80],start:[1,99999],marginBottom:[0,240]};
- const enums:Record<string,string[]>={fontStyle:['normal','italic'],textDecoration:['none','underline','line-through'],textAlign:['left','center','right'],align:['left','center','right'],borderStyle:['solid','dashed','none'],width:['auto','full'],cellVerticalAlign:['top','middle','bottom'],format:['dash','plain','page-total']};
+ // Existing snapshots retain uniform footers until the duplex option is selected.
+ if(kind==='pageNumber'&&input.differentOddEven===undefined)Object.assign(out,{differentOddEven:false});
+ const enums:Record<string,string[]>={fontStyle:['normal','italic'],textDecoration:['none','underline','line-through'],textAlign:['left','center','right'],align:['left','center','right'],evenAlign:['left','center','right'],borderStyle:['solid','dashed','none'],width:['auto','full'],cellVerticalAlign:['top','middle','bottom'],format:['dash','plain','page-total']};
  for(const [key,value]of Object.entries(input)){
   if(!Object.hasOwn(fields,key))throw new Error(`未知 ${kind} 样式设置：${key}`);
   const range=ranges[key];
@@ -99,7 +101,8 @@ export function validateSettings(input:unknown):Settings{
  if(isObject(input)&&(input.defaultStyleId===undefined||input.defaultStyleId==='policy-document')&&isObject(input.appearance)&&input.appearance.toolbarAnchor===undefined&&isObject(input.appearance.pageNumber)){
   const prior={...defaults.appearance.pageNumber,marginBottom:24};
   const candidate=input.appearance.pageNumber;
-  if(Object.keys(candidate).length===Object.keys(prior).length&&Object.entries(prior).every(([key,value])=>candidate[key]===value))out.appearance.pageNumber.marginBottom=defaults.appearance.pageNumber.marginBottom;
+  const priorFields=Object.entries(prior).filter(([key])=>!['differentOddEven','evenAlign'].includes(key));
+  if(Object.keys(candidate).every(key=>Object.hasOwn(prior,key))&&priorFields.every(([key,value])=>candidate[key]===value))out.appearance.pageNumber.marginBottom=defaults.appearance.pageNumber.marginBottom;
  }
  if(!isObject(input))throw new Error('设置数据格式无效。');
  if(input.savedStyles!==undefined){

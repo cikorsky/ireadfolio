@@ -20,6 +20,38 @@ function paragraph(doc:Document,text:string){return [...doc.getElementsByTagName
 function style(doc:Document,id:string){return [...doc.getElementsByTagNameNS(ns,'style')].find(p=>p.getAttributeNS(ns,'styleId')===id)!}
 
 describe('DOCX reading style preservation',()=>{
+ it.each([1,2])('writes distinct odd and even page footers with a native start of %i',async(start)=>{
+  const settings=structuredClone(defaults);
+  settings.appearance.pageNumber.start=start;
+  const {doc,xml}=await unpack(settings);
+  expect(el(await xml('word/settings.xml'),'evenAndOddHeaders')).toBeTruthy();
+  const refs=[...doc.getElementsByTagNameNS(ns,'footerReference')];
+  expect(refs.map(ref=>ref.getAttributeNS(ns,'type'))).toEqual(expect.arrayContaining(['default','even']));
+  const rels=await xml('word/_rels/document.xml.rels');
+  for(const [type,align] of [['default',start%2===1?'right':'left'],['even',start%2===1?'left':'right']]){
+   const ref=refs.find(ref=>ref.getAttributeNS(ns,'type')===type)!;
+   const id=ref.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships','id');
+   const relation=[...rels.documentElement.children].find(node=>node.getAttribute('Id')===id)!;
+   const foot=await xml('word/'+relation.getAttribute('Target'));
+   expect(attr(foot,'jc')).toBe(align);
+   expect(foot.documentElement.textContent).toContain('PAGE');
+   expect(attr(foot,'sz')).toBe('28');
+  }
+  expect(attr(doc,'pgNumType','start')).toBe(String(start));
+ });
+ it('can restore a uniform footer or independently align even pages while hiding the first page',async()=>{
+  const settings=structuredClone(defaults);
+  Object.assign(settings.appearance.pageNumber,{differentOddEven:true,align:'center',evenAlign:'right',firstPage:false,format:'page-total'});
+  const duplex=await unpack(settings);
+  const footers=await Promise.all(Object.keys(duplex.zip.files).filter(path=>/^word\/footer\d+\.xml$/.test(path)).map(duplex.xml));
+  expect(footers.filter(foot=>foot.documentElement.textContent?.includes('NUMPAGES')).map(foot=>attr(foot,'jc'))).toEqual(expect.arrayContaining(['center','right']));
+  expect(el(duplex.doc,'titlePg')).toBeTruthy();
+  expect(footers.some(foot=>!foot.documentElement.textContent?.includes('PAGE'))).toBe(true);
+  settings.appearance.pageNumber.differentOddEven=false;
+  const uniform=await unpack(settings);
+  expect(el(await uniform.xml('word/settings.xml'),'evenAndOddHeaders')?.getAttributeNS(ns,'val')).not.toBe('true');
+  expect([...uniform.doc.getElementsByTagNameNS(ns,'footerReference')].some(ref=>ref.getAttributeNS(ns,'type')==='even')).toBe(false);
+ });
  it('writes the policy title, body and heading settings instead of Office theme defaults',async()=>{
   const {doc,styles}=await unpack();
   expect(attr(style(styles,'Title'),'sz')).toBe('44');

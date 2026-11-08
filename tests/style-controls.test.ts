@@ -15,6 +15,23 @@ function input(node:HTMLInputElement,value:string){Object.getOwnPropertyDescript
 function select(node:HTMLSelectElement,value:string){node.value=value;node.dispatchEvent(new Event('change',{bubbles:true}));}
 
 describe('阅读字体与样式库真实交互',()=>{
+ it('allows independent odd/even alignment and restores the uniform control when disabled',async()=>{
+  let latest=structuredClone(defaults);
+  function Panel(){const [settings,setSettings]=useState(latest);return createElement(StyleControls,{settings,onChange:(next:Settings)=>{latest=next;setSettings(next);}});}
+  const host=document.createElement('div');document.body.append(host);const root=createRoot(host);
+  try{
+   await act(async()=>root.render(createElement(Panel)));
+   const field=(label:string)=>host.querySelector<HTMLSelectElement>(`select[aria-label="${label}"]`)!;
+   await act(async()=>select(field('偶数页页码对齐'),'center'));
+   expect(latest.appearance.pageNumber).toMatchObject({align:'right',evenAlign:'center',differentOddEven:true});
+   await act(async()=>host.querySelector<HTMLInputElement>('[aria-label="奇偶页不同"]')!.click());
+   expect(latest.appearance.pageNumber.differentOddEven).toBe(false);
+   expect(field('页码对齐').value).toBe('right');
+   expect(field('偶数页页码对齐')).toBeNull();
+   await act(async()=>host.querySelector<HTMLInputElement>('[aria-label="奇偶页不同"]')!.click());
+   expect(field('偶数页页码对齐').value).toBe('center');
+  }finally{await act(async()=>root.unmount());host.remove();}
+ });
  it('切换暗色主题同步应用可读的正文和标题配色',async()=>{
   let latest=structuredClone(defaults);
   function Panel(){const [settings,setSettings]=useState(latest);return createElement(SettingsPanel,{settings,onChange:(next:Settings)=>{latest=next;setSettings(next);},onClose:()=>{}});}

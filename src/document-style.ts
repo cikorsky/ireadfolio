@@ -36,10 +36,23 @@ export function printPageCSS(s:Settings):string{
  const p=s.appearance.pageNumber;
  const layout=pageFooterLayout(p);
  const style=document.createElement('span').style;
- for(const [key,value]of Object.entries({'font-family':p.fontFamily,'font-size':`${p.fontSize}px`,'font-weight':'400','font-style':'normal','color':p.color,'text-align':p.align,'vertical-align':'bottom','line-height':`${layout.lineHeightPx}px`,'padding-bottom':`${layout.footerTwips/15}px`}))style.setProperty(key,value);
+ for(const [key,value]of Object.entries({'font-family':p.fontFamily,'font-size':`${p.fontSize}px`,'font-weight':'400','font-style':'normal','color':p.color,'vertical-align':'bottom','line-height':`${layout.lineHeightPx}px`,'padding-bottom':`${layout.footerTwips/15}px`}))style.setProperty(key,value);
  const counter=p.format==='plain'?'counter(page)':p.format==='page-total'?'"第 " counter(page) " 页 / 共 " counter(pages) " 页"':'"— " counter(page) " —"';
- const box=`@bottom-${p.align==='center'?'center':p.align}`;
+ function marginBoxes(align:PageNumberAppearance['align'],enabled:boolean):string{
+  style.setProperty('text-align',align);
+  return (['left','center','right'] as const).map(position=>{
+   const content=enabled&&position===align?counter:'none';
+   return `@bottom-${position}{content:${content};${position===align?style.cssText.replace(/</g,'\\3c '):''}}`;
+  }).join('');
+ }
+ const pages=[`@page{size:A4;margin:28mm 21mm ${layout.bottomTwips/15}px;counter-increment:page;${marginBoxes(p.align,p.enabled&&!p.differentOddEven)}}`];
+ if(p.differentOddEven){
+  // In left-to-right documents the first printed sheet is :right, even when its number starts at 2.
+  const rightAlign=p.start%2===1?p.align:p.evenAlign;
+  const leftAlign=p.start%2===1?p.evenAlign:p.align;
+  pages.push(`@page:right{${marginBoxes(rightAlign,p.enabled)}}`,`@page:left{${marginBoxes(leftAlign,p.enabled)}}`);
+ }
  const firstIncrement=p.start!==1?`counter-increment:page ${p.start};`:'';
- const css=`@page{size:A4;margin:28mm 21mm ${layout.bottomTwips/15}px;counter-increment:page;${box}{content:${p.enabled?counter:'none'};${style.cssText.replace(/</g,'\\3c ')}}}@page:first{${firstIncrement}${!p.firstPage?`${box}{content:none}`:''}}`;
- return css;
+ pages.push(`@page:first{${firstIncrement}${!p.firstPage?marginBoxes(p.align,false):''}}`);
+ return pages.join('');
 }

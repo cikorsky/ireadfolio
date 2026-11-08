@@ -88,6 +88,8 @@ On Linux, use `npx playwright install --with-deps chromium` when needed. `CHROMI
 
 Build directories are `dist/chrome` and `dist/firefox`; release archives are written to `releases/`. Read [Contributing](CONTRIBUTING.md) before opening a pull request and [Security](SECURITY.md) before reporting a vulnerability.
 
+Duplex page numbers are configured under Appearance → Page number style → Detailed settings. Enable separate odd/even pages and choose each alignment. The 江河公文 preset places odd page numbers on the right and even page numbers on the left. Custom styles retain these settings for DOCX and Chrome print/PDF exports.
+
 ## License
 
 First-party code is licensed under [Apache-2.0](LICENSE). Third-party dependencies and assets retain their own licenses; see [NOTICE](NOTICE), [third-party notices](public/THIRD_PARTY_LICENSES.txt), and [Provenance](docs/PROVENANCE.md). This license does not grant redistribution rights to websites, imported documents, or system fonts.

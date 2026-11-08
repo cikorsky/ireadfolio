@@ -102,7 +102,12 @@ export function Reader({article:initial,settings:s,onSettings,onClose,initialPan
  }} dangerouslySetInnerHTML={{__html:article.html}}/>
  {article.nextUrl&&s.modules.nextpage&&<Button className="load-next" loading={busy} onClick={()=>void loadNext(true)}>加载下一页</Button>}
  </article>
- {appearance.pageNumber.enabled&&<div className="circle-page-number-preview" aria-label="打印页码样式预览"><small>打印页码预览</small><span>{pageNumberLabel(appearance.pageNumber.start,undefined,appearance.pageNumber.format)}</span></div>}
+ {appearance.pageNumber.enabled&&<div className="circle-page-number-preview" aria-label="打印页码样式预览"><small>打印页码预览</small>
+  {appearance.pageNumber.differentOddEven?<div className="circle-page-number-pair">
+   <span style={{textAlign:appearance.pageNumber.align}}><small>奇数页</small>{pageNumberLabel(appearance.pageNumber.start+(appearance.pageNumber.start%2===0?1:0),undefined,appearance.pageNumber.format)}</span>
+   <span style={{textAlign:appearance.pageNumber.evenAlign}}><small>偶数页</small>{pageNumberLabel(appearance.pageNumber.start+(appearance.pageNumber.start%2===1?1:0),undefined,appearance.pageNumber.format)}</span>
+  </div>:<span>{pageNumberLabel(appearance.pageNumber.start,undefined,appearance.pageNumber.format)}</span>}
+ </div>}
  {s.footer&&<footer className="circle-footer"><span>iReadFolio · i悦读</span><a href={article.url} target="_blank" rel="noreferrer"><LinkOutlined/> 查看原文</a></footer>}
  </div>
  {s.modules.toolbar&&<nav ref={toolbar} className="circle-toolbar" aria-label="阅读工具栏" data-anchor="page" style={{left:dragPosition.x,right:'auto',top:dragPosition.y}}>

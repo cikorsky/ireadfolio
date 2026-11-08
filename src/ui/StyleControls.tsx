@@ -99,10 +99,13 @@ export function StyleControls({settings,onChange}:{settings:Settings;onChange:(s
    {font('页码字体',a.pageNumber.fontFamily,v=>page('fontFamily',v))}{pageNumber('fontSize','页码字号（px）',8,80,.5)}
    {details('页码详细设置',<>
     {toggle('启用打印页码',a.pageNumber.enabled,v=>page('enabled',v))}{colorControl('页码颜色',a.pageNumber.color,v=>page('color',v))}
-    {select('页码对齐',a.pageNumber.align,simpleAlignments,v=>page('align',v as PageNumberAppearance['align']))}{select('页码格式',a.pageNumber.format,[['dash','— 1 —'],['plain','1'],['page-total','第 1 页 / 共 5 页']],v=>page('format',v as PageNumberAppearance['format']))}
+    {toggle('奇偶页不同',a.pageNumber.differentOddEven,v=>page('differentOddEven',v))}
+    {select(a.pageNumber.differentOddEven?'奇数页页码对齐':'页码对齐',a.pageNumber.align,simpleAlignments,v=>page('align',v as PageNumberAppearance['align']))}
+    {a.pageNumber.differentOddEven&&select('偶数页页码对齐',a.pageNumber.evenAlign,simpleAlignments,v=>page('evenAlign',v as PageNumberAppearance['evenAlign']))}
+    {select('页码格式',a.pageNumber.format,[['dash','— 1 —'],['plain','1'],['page-total','第 1 页 / 共 5 页']],v=>page('format',v as PageNumberAppearance['format']))}
     {pageNumber('start','起始页码',1,9999)}{toggle('首页显示页码',a.pageNumber.firstPage,v=>page('firstPage',v))}{pageNumber('marginBottom','页码距纸张底边（px）',0,240,.5)}
    </>)}
-   <p className="circle-style-help">页码示例：{pageNumberLabel(a.pageNumber.start,a.pageNumber.start+4,a.pageNumber.format)}。默认距纸张底边约 25 mm；增大此值会将页码上移。Chrome 打印/PDF 按实际分页编号；连续阅读不虚构物理页数。请关闭打印窗口中浏览器自带的页眉和页脚。</p>
+   <p className="circle-style-help">页码示例：{pageNumberLabel(a.pageNumber.start,a.pageNumber.start+4,a.pageNumber.format)}。开启“奇偶页不同”后可分别设置两侧页码位置，用于 DOCX 和 Chrome 打印/PDF。默认距纸张底边约 25 mm，增大此值会将页码上移。请关闭打印窗口中浏览器自带的页眉和页脚。</p>
   </section>
   <section className="circle-setting-group"><h3>代码块样式</h3>{font('代码字体',a.codeFont,v=>update('codeFont',v))}{numeric('codeSize','代码字号',12,50)}{details('代码详细设置',numeric('codeLineHeight','代码行高',1,3,.1))}</section>
   <section className="circle-setting-group"><h3>其他外观</h3>

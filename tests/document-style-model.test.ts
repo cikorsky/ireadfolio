@@ -9,6 +9,25 @@ beforeEach(()=>{vi.unstubAllGlobals();vi.stubGlobal('localStorage',new JSDOM('',
 const article:Article={id:'signature',url:'https://example.com/policy',title:'公文标题',author:'来源网站',published:'2025-06-17',signature:'新华社北京6月26日电',signedDate:'2025年6月17日',excerpt:'',html:'<p>正文。</p>',text:'正文。',savedAt:1,tags:[],category:'',archived:false};
 
 describe('署名、表格与页码样式模型',()=>{
+ it('preserves uniform legacy snapshots and round-trips custom odd/even alignment in saved styles and backups',async()=>{
+  const old=JSON.parse(JSON.stringify(defaults));
+  delete old.appearance.pageNumber.differentOddEven;
+  delete old.appearance.pageNumber.evenAlign;
+  expect(validateSettings(old).appearance.pageNumber).toMatchObject({differentOddEven:false,align:'right',evenAlign:'left'});
+  const settings=structuredClone(defaults);
+  Object.assign(settings.appearance.pageNumber,{differentOddEven:true,align:'left',evenAlign:'center'});
+  const saved=saveReadingStyle(settings,'双面打印');
+  await saveSettings(setDefaultReadingStyle(saved,saved.savedStyles[0].id));
+  const backup=await exportBackup();
+  localStorage.clear();await importBackup(backup);
+  const loaded=await getSettings();
+  expect(loaded.appearance.pageNumber).toMatchObject({differentOddEven:true,align:'left',evenAlign:'center'});
+  expect(loaded.savedStyles[0].values.appearance.pageNumber).toEqual(loaded.appearance.pageNumber);
+  delete old.appearance.toolbarAnchor;
+  old.appearance.pageNumber.marginBottom=24;
+  expect(validateSettings(old).appearance.pageNumber.marginBottom).toBe(defaults.appearance.pageNumber.marginBottom);
+  for(const pageNumber of [{differentOddEven:'true'},{evenAlign:'outside'}])expect(()=>validateAppearance({pageNumber})).toThrow();
+ });
  it('浏览器存储跨realm返回的普通对象仍能校验与保存',async()=>{
   const other=new JSDOM('',{runScripts:'outside-only'});
   try{

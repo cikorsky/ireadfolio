@@ -11,6 +11,21 @@ const article:Article={id:'policy',title:'公文标题',url:'https://example.com
 async function bytes(blob:Blob):Promise<ArrayBuffer>{return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result as ArrayBuffer);reader.onerror=reject;reader.readAsArrayBuffer(blob);});}
 
 describe('署名表格与页码实际导出契约',()=>{
+ it('uses separate print margin boxes for odd and even page numbers, including an even starting number',()=>{
+  const settings=structuredClone(defaults);
+  let css=printPageCSS(settings);
+  const right=()=>/@page:right\{(.*?)\}\}/.exec(css)?.[1];
+  const left=()=>/@page:left\{(.*?)\}\}/.exec(css)?.[1];
+  expect(right()).toContain('@bottom-right{content:"— "');
+  expect(left()).toContain('@bottom-left{content:"— "');
+  settings.appearance.pageNumber.start=2;
+  settings.appearance.pageNumber.firstPage=false;
+  css=printPageCSS(settings);
+  expect(right()).toContain('@bottom-left{content:"— "');
+  expect(left()).toContain('@bottom-right{content:"— "');
+  expect(css).toMatch(/@page:first\{[^}]*counter-increment:page 2/);
+  expect(css).toMatch(/@page:first\{.*@bottom-left\{content:none/);
+ });
  it('手动选择正文同样遵守标题识别开关',()=>{
   const doc=new DOMParser().parseFromString('<title>测试</title><article><p>一、总体要求</p><p>这是普通正文。</p></article>','text/html'),element=doc.querySelector('article')!;
   expect(extractSelection(element,'https://example.com/manual',{detectHeadings:false}).html).not.toContain('<h1');

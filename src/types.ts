@@ -10,6 +10,7 @@ export interface TableAppearance {
  borderColor:string; borderWidth:number; borderStyle:'solid'|'dashed'|'none'; cellPaddingX:number; cellPaddingY:number; align:'left'|'center'|'right'; width:'auto'|'full'; striped:boolean; stripeColor:string; cellVerticalAlign:'top'|'middle'|'bottom';
 }
 export interface PageNumberAppearance {
+ differentOddEven:boolean; evenAlign:'left'|'center'|'right';
  enabled:boolean; fontFamily:string; fontSize:number; color:string; align:'left'|'center'|'right'; format:'dash'|'plain'|'page-total'; start:number; firstPage:boolean; marginBottom:number;
 }
 export interface Appearance {

@@ -56,7 +56,7 @@ describe('live settings preview and paper-relative toolbar',()=>{
    await act(async()=>root.render(createElement(SettingsPanel,{settings:structuredClone(defaults),onChange:()=>{},onClose:close})));
    expect(host.querySelector('.circle-panel-overlay')).toBeNull();expect(host.querySelector('.circle-settings-dock')).toBeTruthy();expect(host.querySelector('[role="dialog"]')?.getAttribute('aria-modal')).toBe('false');
    const config=host.querySelector<HTMLButtonElement>('button[aria-label="配置管理"]')!;expect(config).toBeTruthy();await act(async()=>config.click());expect(host.textContent).toContain('本地配置与数据');
-   await act(async()=>host.querySelector<HTMLButtonElement>('button[aria-label="关于"]')!.click());expect(host.textContent).toContain('版本 0.8.0');expect(host.textContent).not.toMatch(/Circle|原站|会员/);
+   await act(async()=>host.querySelector<HTMLButtonElement>('button[aria-label="关于"]')!.click());expect(host.textContent).toContain('版本 0.8.1');expect(host.textContent).not.toMatch(/Circle|原站|会员/);
    const escape=new KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true});await act(async()=>host.querySelector('.circle-settings')!.dispatchEvent(escape));expect(close).toHaveBeenCalledOnce();expect(escape.defaultPrevented).toBe(true);
   }finally{await act(async()=>root.unmount());host.remove();}
  });

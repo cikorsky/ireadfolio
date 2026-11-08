@@ -2,7 +2,7 @@ import {Document as WordDocument,Paragraph,TextRun,Table,TableRow,TableCell,Imag
 import type {IRunStylePropertiesOptions} from 'docx';
 import {signatureLines,pageFooterLayout} from '../document-style';
 import {defaults} from '../defaults';
-import type {Article,Settings} from '../types';
+import type {Article,Settings,PageNumberAppearance} from '../types';
 import {articleDocument,sourceURL} from './content';
 import {prepareWordImage,fitWordImage} from './word-images';
 import {makeWordStyles,fontResolver,twips,color,alignment} from './word-style';
@@ -119,12 +119,12 @@ async function blocks(root:Element,context:Context):Promise<Block[]>{
  return result;
 }
 
-function footer(style:WordStyle,settings:Settings):Footer{
+function footer(style:WordStyle,settings:Settings,align:PageNumberAppearance['align']):Footer{
  const format=settings.appearance.pageNumber.format;
  const run=(text:string)=>new TextRun({text,...style.run});
  const current=new TextRun({...style.run,children:[PageNumber.CURRENT]});
  const children=format==='page-total'?[run('第 '),current,run(' 页 / 共 '),new TextRun({...style.run,children:[PageNumber.TOTAL_PAGES]}),run(' 页')]:format==='dash'?[run('— '),current,run(' —')]:[current];
- return new Footer({children:[paragraph(style,children)]});
+ return new Footer({children:[paragraph(style,children,{alignment:alignment(align)})]});
 }
 
 /** Export current reading settings as native Word styles, independent of Office themes. */
@@ -142,9 +142,15 @@ export async function buildDocx(article:Article,settings:Settings=defaults):Prom
  const p=settings.appearance.pageNumber;
  const footerLayout=pageFooterLayout(p);
  const margin=Math.round((pageWidth-contentWidth)/2);
- const footers=p.enabled?{default:footer(styles.page,settings),...!p.firstPage?{first:new Footer({children:[new Paragraph('')]})}:{}}:undefined;
+ // Word's footer slots alternate from the first sheet in the section, independent of PAGE numbering.
+ const startsEven=p.differentOddEven&&p.start%2===0;
+ const footers=p.enabled?{
+  default:footer(styles.page,settings,startsEven?p.evenAlign:p.align),
+  ...p.differentOddEven?{even:footer(styles.page,settings,startsEven?p.align:p.evenAlign)}:{},
+  ...!p.firstPage?{first:new Footer({children:[new Paragraph('')]})}:{},
+ }:undefined;
  const source=paragraph(styles.source,[new TextRun({text:'来源：',...styles.source.run}),new ExternalHyperlink({link:sourceURL(article.url),children:[new TextRun({text:article.url,...styles.source.run})]})]);
- const doc=new WordDocument({title:article.title,creator:article.signature||article.author||'iReadFolio · i悦读',description:article.excerpt,features:{updateFields:true},
+ const doc=new WordDocument({title:article.title,creator:article.signature||article.author||'iReadFolio · i悦读',description:article.excerpt,features:{updateFields:true},evenAndOddHeaderAndFooters:p.enabled&&p.differentOddEven,
   styles:{default:{document:{run:styles.body.run,paragraph:styles.body.paragraph}},paragraphStyles:styles.definitions},
   sections:[{properties:{page:{size:{width:pageWidth,height:16838},margin:{top:1587,bottom:footerLayout.bottomTwips,left:margin,right:margin,footer:footerLayout.footerTwips},pageNumbers:{start:p.start}},titlePage:p.enabled&&!p.firstPage,column:{count:columns,space:columnGap,equalWidth:true}},footers,
    children:[paragraph(styles.title,[new TextRun({text:article.title,...styles.title.run})]),...signatures,...content,source]}],

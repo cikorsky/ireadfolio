@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.1 — 2026-11-08
+
+- Added separate odd/even page-number alignment for duplex DOCX and Chrome print/PDF exports.
+- Updated the 江河公文 preset to place odd page numbers on the right and even page numbers on the left.
+- Added odd/even style previews and persistence in named styles and backups. Existing custom snapshots retain uniform page-number alignment until enabled.
+
 ## 0.8.0 — 2026-11-06
 
 First public-source version under the iReadFolio name.
