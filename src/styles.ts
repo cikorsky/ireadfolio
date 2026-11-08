@@ -29,8 +29,13 @@ export function saveReadingStyle(settings:Settings,name:string):Settings{
 export function setDefaultReadingStyle(settings:Settings,id:string):Settings{
  const style=getReadingStyles(settings).find(item=>item.id===id);
  if(!style)throw Error('默认样式不存在，请重新选择。');
- return {...applyReadingStyle(settings,style),defaultStyleId:id};
+ return {...applyReadingStyle(settings,style),defaultStyleId:id,defaultStyleOverride:null};
+}
+export function saveCurrentReadingConfiguration(settings:Settings):Settings{
+ return {...settings,defaultStyleOverride:captureReadingStyle(settings)};
 }
 export function applyDefaultReadingStyle(settings:Settings):Settings{
- return setDefaultReadingStyle(settings,settings.defaultStyleId);
+ const style=getReadingStyles(settings).find(item=>item.id===settings.defaultStyleId);
+ if(!style)throw Error('默认样式不存在，请重新选择。');
+ return applyReadingStyle(settings,{...style,values:settings.defaultStyleOverride??style.values});
 }

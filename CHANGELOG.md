@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.8.2 — 2026-11-09
+
+- Added Save current configuration under Appearance so image alignment and other adjustments persist for newly opened articles without creating a named style.
+- Included the saved configuration in full backups. Selecting a default style applies that style to subsequent articles.
+
 ## 0.8.1 — 2026-11-08
 
 - Added separate odd/even page-number alignment for duplex DOCX and Chrome print/PDF exports.

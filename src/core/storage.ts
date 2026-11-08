@@ -81,6 +81,10 @@ function validateSettingsBase(input:unknown):Settings{
   for(const key of Object.keys(defaults) as (keyof Settings)[]){
     const v=input[key];if(v===undefined)continue;
     if(key==='savedStyles'||key==='defaultStyleId')continue;
+    if(key==='defaultStyleOverride'){
+      out.defaultStyleOverride=v===null?null:validateReadingStyle({id:'current-configuration',name:'当前配置',values:v}).values;
+      continue;
+    }
     if(key==='defaultExportFormat'){if(!exportFormats.some(([format])=>format===v))throw new Error('默认导出格式无效。');out.defaultExportFormat=v as Settings['defaultExportFormat'];continue;}
     if(key==='toolbarExtras'){if(!isObject(v)||Object.entries(v).some(([name,value])=>!Object.hasOwn(out.toolbarExtras,name)||typeof value!=='boolean'))throw new Error('工具栏附加按钮设置无效。');out.toolbarExtras={...out.toolbarExtras,...v};continue;}
     if(key==='appearance'){out.appearance=validateAppearance(v);continue;}

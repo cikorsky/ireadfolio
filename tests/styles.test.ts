@@ -1,7 +1,7 @@
 import {beforeEach,describe,expect,it,vi} from 'vitest';
 import {JSDOM} from 'jsdom';
 import {defaults,builtInReadingStyles,legacyAppearance} from '../src/defaults';
-import {applyDefaultReadingStyle,applyReadingStyle,captureReadingStyle,getReadingStyles,saveReadingStyle,setDefaultReadingStyle} from '../src/styles';
+import {applyDefaultReadingStyle,applyReadingStyle,captureReadingStyle,getReadingStyles,saveCurrentReadingConfiguration,saveReadingStyle,setDefaultReadingStyle} from '../src/styles';
 import {getSettings,saveSettings,validateSettings,validateAppearance,exportBackup,importBackup} from '../src/core/storage';
 
 beforeEach(()=>{vi.unstubAllGlobals();vi.stubGlobal('localStorage',new JSDOM('',{url:'https://styles.test'}).window.localStorage);});
@@ -26,6 +26,40 @@ describe('公文模板与独立排版',()=>{
 });
 
 describe('在线另存与默认样式',()=>{
+ it('保存当前配置后，新文章保留图片居中等修改，备份恢复后继续生效',async()=>{
+  const settings=structuredClone(defaults);
+  settings.appearance.imageAlign='center';settings.fontSize=24;
+  const saved=saveCurrentReadingConfiguration(settings);
+  expect(saved.savedStyles).toHaveLength(0);
+  expect(saved.defaultStyleId).toBe('policy-document');
+  expect(builtInReadingStyles[0].values.appearance.imageAlign).toBe(defaults.appearance.imageAlign);
+  await saveSettings(saved);
+  expect(applyDefaultReadingStyle(await getSettings()).appearance.imageAlign).toBe('center');
+  const draft=await getSettings();draft.appearance.imageAlign='left';draft.fontSize=30;
+  expect(applyDefaultReadingStyle(draft)).toMatchObject({fontSize:24,appearance:{imageAlign:'center'}});
+  const backup=await exportBackup();localStorage.clear();await importBackup(backup);
+  expect(applyDefaultReadingStyle(await getSettings())).toMatchObject({fontSize:24,appearance:{imageAlign:'center'}});
+ });
+ it('重新指定默认样式后使用所选样式，已有命名快照仍独立保存',()=>{
+  const settings=saveReadingStyle(structuredClone(defaults),'已有样式');
+  const snapshot=structuredClone(settings.savedStyles[0]);
+  settings.appearance.imageAlign='center';
+  const saved=saveCurrentReadingConfiguration(settings);
+  expect(saved.savedStyles[0]).toEqual(snapshot);
+  const switched=setDefaultReadingStyle(saved,'default');
+  expect(switched.defaultStyleOverride).toBeNull();
+  expect(applyDefaultReadingStyle(switched).appearance.imageAlign).toBe('default');
+  expect(switched.savedStyles[0]).toEqual(snapshot);
+ });
+ it('旧配置兼容加载，非法的当前配置在备份导入前被拒绝',async()=>{
+  const legacy=JSON.parse(JSON.stringify(defaults));delete legacy.defaultStyleOverride;
+  expect(validateSettings(legacy).defaultStyleOverride).toBeNull();
+  const saved=saveCurrentReadingConfiguration(structuredClone(defaults));await saveSettings(saved);
+  const backup=await exportBackup(),before=localStorage.getItem('circle.replica.settings');
+  const invalid={...captureReadingStyle(defaults),modules:{gallery:false}};
+  await expect(importBackup({...backup,settings:{...saved,defaultStyleOverride:invalid}})).rejects.toThrow();
+  expect(localStorage.getItem('circle.replica.settings')).toBe(before);
+ });
  it('另存两套独立样式，并且应用样式不改快捷键、模块和工具栏位置',()=>{
   const original=structuredClone(defaults);original.appearance.toolbarX=45;original.appearance.toolbarItemGap=23;original.shortcuts.toggle='r r';original.modules.gallery=false;
   const first=saveReadingStyle(original,'我的法规样式');expect(original.savedStyles).toHaveLength(0);expect(first.savedStyles).toHaveLength(1);

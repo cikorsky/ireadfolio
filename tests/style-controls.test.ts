@@ -15,6 +15,21 @@ function input(node:HTMLInputElement,value:string){Object.getOwnPropertyDescript
 function select(node:HTMLSelectElement,value:string){node.value=value;node.dispatchEvent(new Event('change',{bubbles:true}));}
 
 describe('阅读字体与样式库真实交互',()=>{
+ it('保存当前配置无需名称，新打开的文章使用已保存的图片对齐',async()=>{
+  let latest=structuredClone(defaults);latest.appearance.imageAlign='center';
+  function Panel(){const [settings,setSettings]=useState(latest);return createElement(ReadingStyles,{settings,onChange:(next:Settings)=>{latest=next;setSettings(next);}});}
+  const host=document.createElement('div');document.body.append(host);const root=createRoot(host);
+  try{
+   await act(async()=>root.render(createElement(Panel)));
+   const save=[...host.querySelectorAll<HTMLButtonElement>('button')].find(button=>button.textContent==='保存当前配置')!;
+   expect(save).toBeTruthy();expect(save.disabled).toBe(false);
+   await act(async()=>save.click());
+   expect(latest.savedStyles).toHaveLength(0);
+   expect(applyDefaultReadingStyle(latest).appearance.imageAlign).toBe('center');
+   expect(save.disabled).toBe(true);
+   expect(host.querySelector('[role="status"]')?.textContent).toContain('已保存当前配置');
+  }finally{await act(async()=>root.unmount());host.remove();}
+ });
  it('allows independent odd/even alignment and restores the uniform control when disabled',async()=>{
   let latest=structuredClone(defaults);
   function Panel(){const [settings,setSettings]=useState(latest);return createElement(StyleControls,{settings,onChange:(next:Settings)=>{latest=next;setSettings(next);}});}
